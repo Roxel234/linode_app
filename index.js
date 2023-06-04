@@ -6,6 +6,10 @@ const { readFile } = require("fs");
 
 app.use(express.static(path.join(__dirname,"public")));
 
+app.get("/",(req,res)=>{
+	res.sendFile(path.join(__dirname,"public","home.html"));
+});
+
 const server = app.listen(port,()=>console.log("Server started on port",port));
 
 const socketIO = require("socket.io");
@@ -13,6 +17,8 @@ const socketIO = require("socket.io");
 const io = socketIO(server);
 
 const rooms = {};
+
+const sockets = {};
 
 function createRoom(private){
 	let id = 1000 + Math.round(Math.random()*8999);
@@ -56,8 +62,39 @@ function searchRoom(socket) {
 
 io.on("connection",function(socket){
 	console.log("New connection. ID:",socket.id);
+	sockets[socket.id] = socket;
 
 	searchRoom(socket);
 
 	socket.emit("console-log","Your id is '"+socket.id+"'");
+
+	socket.on("disconnect",()=>{
+		delete sockets[socket.id];
+	});
 });
+
+function tickRoom(key){
+	let players = rooms[key].players;
+
+	var socket;
+
+	for (var i = 0; i < players.length; i++) {
+		socket = sockets[players[i]];
+		if (!socket) {
+			console.log("Exited",players[i],"from the room",key);
+			rooms[key].players.splice(i,1);
+			continue;
+			i--;
+		}
+
+		socket.emit("console-log","Room Manager: You're player "+(i+1));
+	}
+}
+
+setInterval(()=>{
+	let roomKeys = Object.keys(rooms);
+
+	for (var i = 0; i < roomKeys.length; i++) {
+		tickRoom(roomKeys[i]);
+	}
+},50/3);

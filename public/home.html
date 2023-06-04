@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="shortcut icon" href="favicon.png">
+	<style>
+		html, body {
+			height: 100%;
+			padding: 0;
+			margin: 5px;
+		}
+
+		body {
+			background-image: url("background.png");
+			background-repeat: no-repeat;
+			background-attachment: fixed;
+			background-size: cover;
+			color: #000000;
+			overflow: hidden;
+		}
+
+		#main {
+			background-color: rgba(255, 255, 255, 0.7);
+			width: 100%;
+			height: calc(100% - 20px);
+			text-align: center;
+			border-radius: 40px;
+			display: flex;
+		}
+		#info-side,#play-side {
+			float: left;
+			width: 50%;
+		}
+		#play-side {
+			display: flex;
+			flex-direction: column;
+			align-content: center;
+			height: 100%;
+			border-right: 2px solid black;
+		}
+		#info-side {
+			border-left: 2px solid black;
+		}
+		#play-side button {
+			width: 150px;
+			height: 20px;
+			margin-bottom: 5px;
+			align-self: center;
+		}
+	</style>
+	<title>/- MUNO -/</title>
+</head>
+<body>
+	<div id="main">
+		<div id="play-side">
+			<h1>MUNO</h1>
+			<p>Jugar a MUNO</p>
+			<button>Partida publica</button>
+			<button>Partida privada</button>
+		</div>
+		<div id="info-side">
+			<p>MUNO fue creado para un proyecto escolar fisico, pero uno de sus integrantes creo esta version web con mucho gusto. Para que muchos puedan jugarlo despues de la presentacion en la escuela. Espero que disfuten o hayan disfrutado de la version fisica y virtual. (Integrante R)</p>
+			<button>Como jugar?</button>
+		</div>
+	</div>
+
+	<script src="socket.io/socket.io.js"></script>
+	<script>
+		const socket = io();
+
+		socket.on("console-log",(data)=>console.log(data));
+	</script>
+</body>
+</html>
