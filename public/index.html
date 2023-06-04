@@ -7,8 +7,15 @@
 	<title>/- MUNO -/</title>
 </head>
 <body>
-	<h1>MUNO</h1>
-	<p>Your name:</p>
-	<input type="text">
+	<canvas id="main"></canvas>
+
+	<script src="socket.io/socket.io.js"></script>
+	<script>
+		console.log("Hola mundo!");
+
+		const socket = io();
+
+		socket.on("console-log",(data)=>console.log(data));
+	</script>
 </body>
 </html>
