@@ -44,6 +44,7 @@
 		const ctx = canvas.getContext("2d");
 
 		var players = 0;
+		var admin = false;
 
 		socket.on("joined-game",(data)=>{
 			roomId = data.id;
@@ -51,6 +52,7 @@
 
 		socket.on("room-update",(data)=>{
 			players = data.players;
+			admin = data.admin;
 		});
 
 		setInterval(()=>{
@@ -60,6 +62,9 @@
 			ctx.font = "30px Arial";
 			ctx.fillText("Room: "+roomId,50,50);
 			ctx.fillText("Players: "+players,50,150);
+			if (admin) {
+				ctx.fillText("You're admin",50,200);
+			}
 		},50/3);
 	</script>
 </body>

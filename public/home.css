@@ -38,8 +38,6 @@ body {
 	border-left-color: rgba(0, 0, 0, 0.3);
 }
 #play-side button {
-	width: 150px;
-	height: 40px;
 	margin-bottom: 5px;
 	align-self: center;
 	background-color: limegreen;
@@ -50,6 +48,11 @@ body {
 	border-color: white;
 	border-style: solid;
 	transition: background-color 0.3s;
+}
+
+#game-public, #game-private {
+	width: 150px;
+	height: 40px;
 }
 
 #play-side button.clicked {
@@ -65,4 +68,22 @@ body {
 	font-size: 20px;
 	font-family: monospace;
 	color: red;
+}
+
+#return, #create {
+	height: 50%;
+	width: 20%;
+}
+
+#roomInput, #proceed {
+	height: 30%;
+
+	margin-top: 2%;
+	margin-bottom: 2%;
+}
+
+#roomInput {
+	font-size: 25px;
+	width: 20%;
+	text-align: center;
 }

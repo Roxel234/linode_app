@@ -35,7 +35,8 @@ function createRoom(private){
 	rooms["room-"+id] = {
 		players:[],
 		private,
-		playerCount:0
+		playerCount:0,
+		admin:undefined
 	};
 
 	console.log("Created room",id,rooms["room-"+id]);
@@ -45,11 +46,18 @@ function createRoom(private){
 
 function joinRoom(socket,room) {
 	if (rooms["room-"+room]) {
-		rooms["room-"+room].players.push(socket.id);
-		rooms["room-"+room].playerCount++;
+		if (rooms["room-"+room].playerCount < 4) {
+			if (rooms["room-"+room].playerCount == 0) {
+				rooms["room-"+room].admin = socket.id;
+			}
+			rooms["room-"+room].players.push(socket.id);
+			rooms["room-"+room].playerCount++;
 
-		console.log("Socket",socket.id,"joined room",room);
-		socket.emit("console-log","You joined room "+room);
+			console.log("Socket",socket.id,"joined room",room);
+			socket.emit("console-log","You joined room "+room);
+		} else {
+			socket.emit("return-error","Room '"+room+"' is full");
+		}
 	} else {
 		socket.emit("return-error","Sala inexistente '"+room+"'");
 	}
@@ -86,11 +94,7 @@ io.on("connection",function(socket){
 	socket.on("search-game",()=>searchRoom(socket));
 
 	socket.on("join-game",(id)=>{
-		if (rooms[id].playerCount >= 4) {
-			joinRoom(socket,id);
-		} else {
-			socket.emit("return-error","Room '"+id+"' is full");
-		}
+		joinRoom(socket,id);
 	});
 
 	socket.on("create-room",()=>socket.emit("ready-join",createRoom(true)));
@@ -107,11 +111,15 @@ function tickRoom(key){
 
 	for (var i = 0; i < players.length; i++) {
 		socket = sockets[players[i]];
+
 		if (!socket) {
 			console.log("Exited",players[i],"from the room",key);
 			rooms[key].players.splice(i,1);
 			rooms[key].playerCount--;
 			i--;
+			if (rooms[key].players.indexOf(rooms[key].admin) <= -1) {
+				rooms[key].admin = rooms[key].players[0];
+			}
 			if (rooms[key].playerCount <= 0) {
 				delete rooms[key];
 				break;
@@ -119,8 +127,11 @@ function tickRoom(key){
 			continue;
 		}
 
+		let isAdmin = socket.id == rooms[key].admin ;
+
 		socket.emit("room-update",{
-			players:rooms[key].playerCount
+			players:rooms[key].playerCount,
+			admin:isAdmin
 		});
 	}
 }

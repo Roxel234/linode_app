@@ -36,6 +36,8 @@
 
 		socket.on("console-log",(data)=>console.log(data));
 
+		const buttonsDiv = document.getElementById("buttons-div");
+
 		function addButtonFuncsNormal(){
 			var buttonPublic = document.getElementById('game-public');
 			var buttonPrivate = document.getElementById('game-private');
@@ -46,6 +48,9 @@
 			});
 			buttonPrivate.addEventListener("click",()=>{
 				buttonPrivate.classList.add("clicked");
+				buttonsDiv.innerHTML = "<button id='return'>← Volver</button><br><input type='text' placeholder='Room ID' id='roomInput'><button id='proceed'>Unirse</button><br><button id='create'>Crear</button>";
+
+				addButtonFuncsPrivate();
 			});
 		}
 
@@ -72,11 +77,6 @@
 		socket.on("ready-join",(id)=>{
 			window.location.href = "http://"+window.location.host + "/play?room="+id;
 		});
-
-		const buttonsDiv = document.getElementById("buttons-div");
-		buttonsDiv.innerHTML = "<button id='return'>← Volver</button><input type='text' placeholder='Room ID' id='roomInput'><button id='create'>Crear</button><button id='proceed'>Unirse</button>";
-
-		addButtonFuncsPrivate();
 	</script>
 </body>
 </html>
