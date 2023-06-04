@@ -15,17 +15,52 @@
 			background-repeat: no-repeat;
 			background-attachment: fixed;
 			background-size: cover;
+
+			position: absolute;
+			top: 0;
+			left: 0;
+		}
+		#cover {
+			width: 100%;
+			height: 100%;
+
+			position: absolute;
+			top: 0;
+			left: 0;
+
+			align-items: center;
+			display: flex;
+			justify-content: center;
+		}
+
+		#comenzar-juego {
+			display: none;
+
+			border-radius: 50%;
+			aspect-ratio: 2/1;
+			width: 20%;
+			border-width: 10px;
+			border-color: forestgreen;
+			background-color: greenyellow;
+
+			font-family: monospace;
+			font-size: 20px;
 		}
 	</style>
 	<title>/- MUNO -/</title>
 </head>
 <body>
 	<canvas id="main"></canvas>
+	<div id="cover">
+		<button id="comenzar-juego"><strong>Iniciar Juego (Admin)<strong></button>
+	</div>
 
 	<script src="socket.io/socket.io.js"></script>
 	<script>
 		const socket = io();
 		const gameId = (new URLSearchParams((new URL(window.location.href)).search)).get("room");
+		const beginButton = document.getElementById("comenzar-juego");
+		var gameStarted = false;
 
 		socket.on("console-log",(data)=>console.log(data));
 
@@ -46,6 +81,12 @@
 		var players = 0;
 		var admin = false;
 
+		beginButton.addEventListener("click",()=>{
+			if (admin) {
+				socket.emit("begin-game");
+			}
+		});
+
 		socket.on("joined-game",(data)=>{
 			roomId = data.id;
 		});
@@ -53,7 +94,20 @@
 		socket.on("room-update",(data)=>{
 			players = data.players;
 			admin = data.admin;
+			gameStarted = data.started;
 		});
+
+		const imageCache = {};
+		function loadImage(path){
+			if (imageCache[path]) {
+				return imageCache[path];
+			} else {
+				let img = new Image();
+				img.src = path;
+				imageCache[path] = img;
+				return img;
+			}
+		}
 
 		setInterval(()=>{
 			canvas.width = window.innerWidth;
@@ -61,10 +115,13 @@
 
 			ctx.font = "30px Arial";
 			ctx.fillText("Room: "+roomId,50,50);
-			ctx.fillText("Players: "+players,50,150);
-			if (admin) {
-				ctx.fillText("You're admin",50,200);
+			ctx.fillText("Players: "+players,50,100);
+			if (admin && !gameStarted) {
+				beginButton.style.display = "block";
+			} else {
+				beginButton.style.display = "none";
 			}
+			ctx.drawImage(loadImage("cards/card0.png"),500,200);
 		},50/3);
 	</script>
 </body>

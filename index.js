@@ -36,7 +36,8 @@ function createRoom(private){
 		players:[],
 		private,
 		playerCount:0,
-		admin:undefined
+		admin:undefined,
+		started: false
 	};
 
 	console.log("Created room",id,rooms["room-"+id]);
@@ -55,6 +56,7 @@ function joinRoom(socket,room) {
 
 			console.log("Socket",socket.id,"joined room",room);
 			socket.emit("console-log","You joined room "+room);
+			socket.gameRoom = room;
 		} else {
 			socket.emit("return-error","Room '"+room+"' is full");
 		}
@@ -99,6 +101,15 @@ io.on("connection",function(socket){
 
 	socket.on("create-room",()=>socket.emit("ready-join",createRoom(true)));
 
+	socket.on("begin-game",()=>{
+		if (socket.gameRoom) {
+			if (rooms["room-"+socket.gameRoom].admin == socket.id && !rooms["room-"+socket.gameRoom].started && rooms["room-"+socket.gameRoom].players.length >= 2) {
+				console.log("Begin game!");
+				rooms["room-"+socket.gameRoom].started = true;
+			}
+		}
+	});
+
 	socket.on("disconnect",()=>{
 		delete sockets[socket.id];
 	});
@@ -131,7 +142,8 @@ function tickRoom(key){
 
 		socket.emit("room-update",{
 			players:rooms[key].playerCount,
-			admin:isAdmin
+			admin:isAdmin,
+			started: rooms[key].started
 		});
 	}
 }
