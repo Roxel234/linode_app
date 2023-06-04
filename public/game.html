@@ -25,18 +25,32 @@
 	<script src="socket.io/socket.io.js"></script>
 	<script>
 		const socket = io();
+		const gameId = (new URLSearchParams((new URL(window.location.href)).search)).get("room");
 
 		socket.on("console-log",(data)=>console.log(data));
 
-		socket.emit("search-game");
+		var roomId = "Buscando...";
+
+		if (gameId) {
+			socket.emit("join-game",gameId);
+			roomId = gameId;
+		} else {
+			socket.emit("search-game");
+		}
+
+		socket.on("return-error",(msg)=>window.location.href = "http://"+window.location.host + "/?error="+msg);
 
 		const canvas = document.getElementById("main");
 		const ctx = canvas.getContext("2d");
 
-		var roomId = "Buscando...";
+		var players = 0;
 
 		socket.on("joined-game",(data)=>{
 			roomId = data.id;
+		});
+
+		socket.on("room-update",(data)=>{
+			players = data.players;
 		});
 
 		setInterval(()=>{
@@ -45,6 +59,7 @@
 
 			ctx.font = "30px Arial";
 			ctx.fillText("Room: "+roomId,50,50);
+			ctx.fillText("Players: "+players,50,150);
 		},50/3);
 	</script>
 </body>

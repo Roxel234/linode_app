@@ -25,12 +25,17 @@ const rooms = {};
 const sockets = {};
 
 function createRoom(private){
-	let id = 1000 + Math.round(Math.random()*8999);
+	let genId = ()=> 1000 + Math.round(Math.random()*8999);
+	let id = genId();
+
+	while (rooms["room-"+id]) {
+		id = genId();
+	}
 
 	rooms["room-"+id] = {
-		canJoin:true,
 		players:[],
-		private
+		private,
+		playerCount:0
 	};
 
 	console.log("Created room",id,rooms["room-"+id]);
@@ -39,10 +44,15 @@ function createRoom(private){
 }
 
 function joinRoom(socket,room) {
-	rooms["room-"+room].players.push(socket.id);
+	if (rooms["room-"+room]) {
+		rooms["room-"+room].players.push(socket.id);
+		rooms["room-"+room].playerCount++;
 
-	console.log("Socket",socket.id,"joined room",room);
-	socket.emit("console-log","You joined room "+room);
+		console.log("Socket",socket.id,"joined room",room);
+		socket.emit("console-log","You joined room "+room);
+	} else {
+		socket.emit("return-error","Sala inexistente '"+room+"'");
+	}
 }
 
 function searchRoom(socket) {
@@ -51,7 +61,7 @@ function searchRoom(socket) {
 	let room2join = undefined;
 
 	for (var i = 0; i < roomKeys.length; i++) {
-		if (rooms[roomKeys[i]].players.length < 4) {
+		if (rooms[roomKeys[i]].players.length < 4 && !rooms[roomKeys[i]].private) {
 			room2join = parseInt(roomKeys[i].substring(5),10);
 			break;
 		}
@@ -75,6 +85,16 @@ io.on("connection",function(socket){
 
 	socket.on("search-game",()=>searchRoom(socket));
 
+	socket.on("join-game",(id)=>{
+		if (rooms[id].playerCount >= 4) {
+			joinRoom(socket,id);
+		} else {
+			socket.emit("return-error","Room '"+id+"' is full");
+		}
+	});
+
+	socket.on("create-room",()=>socket.emit("ready-join",createRoom(true)));
+
 	socket.on("disconnect",()=>{
 		delete sockets[socket.id];
 	});
@@ -90,11 +110,18 @@ function tickRoom(key){
 		if (!socket) {
 			console.log("Exited",players[i],"from the room",key);
 			rooms[key].players.splice(i,1);
-			continue;
+			rooms[key].playerCount--;
 			i--;
+			if (rooms[key].playerCount <= 0) {
+				delete rooms[key];
+				break;
+			}
+			continue;
 		}
 
-		socket.emit("console-log","Room Manager: You're player "+(i+1));
+		socket.emit("room-update",{
+			players:rooms[key].playerCount
+		});
 	}
 }
 

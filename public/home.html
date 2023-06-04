@@ -11,9 +11,12 @@
 	<div id="main">
 		<div id="play-side">
 			<h1>MUNO</h1>
-			<p>Jugar a MUNO</p>
-			<button id="game-public">Partida publica</button>
-			<button id="game-private">Partida privada</button>
+			<p id="label">Jugar a MUNO</p>
+			<p id="error"></p>
+			<div id="buttons-div">
+				<button id="game-public">Partida publica</button>
+				<button id="game-private">Partida privada</button>
+			</div>
 		</div>
 		<div id="info-side">
 			<p>MUNO fue creado para un proyecto escolar fisico, pero uno de sus integrantes creo esta version web con mucho gusto. Para que muchos puedan jugarlo despues de la presentacion en la escuela. Espero que disfuten o hayan disfrutado de la version fisica y virtual. (Integrante R)</p>
@@ -25,18 +28,55 @@
 	<script>
 		const socket = io();
 
+		const errorMsg = (new URLSearchParams((new URL(window.location.href)).search)).get("error");
+
+		if (errorMsg) {
+			document.getElementById("error").innerHTML = errorMsg;
+		}
+
 		socket.on("console-log",(data)=>console.log(data));
 
-		const buttonPublic = document.getElementById('game-public');
-		const buttonPrivate = document.getElementById('game-private');
+		function addButtonFuncsNormal(){
+			var buttonPublic = document.getElementById('game-public');
+			var buttonPrivate = document.getElementById('game-private');
 
-		buttonPublic.addEventListener("click",()=>{
-			buttonPublic.classList.add("clicked");
-			window.location.href = "http://"+window.location.host + "/play";
+			buttonPublic.addEventListener("click",()=>{
+				buttonPublic.classList.add("clicked");
+				window.location.href = "http://"+window.location.host + "/play";
+			});
+			buttonPrivate.addEventListener("click",()=>{
+				buttonPrivate.classList.add("clicked");
+			});
+		}
+
+		addButtonFuncsNormal();
+
+		function addButtonFuncsPrivate(){
+			var returnButton = document.getElementById("return");
+			var createButton = document.getElementById("create");
+			var proceedButton = document.getElementById("proceed");
+			var roomInput = document.getElementById("roomInput");
+
+			returnButton.addEventListener("click",()=>{
+				buttonsDiv.innerHTML = '<button id="game-public">Partida publica</button><button id="game-private">Partida privada</button>';
+				addButtonFuncsNormal();
+			});
+			createButton.addEventListener("click",()=>{
+				socket.emit("create-room");
+			});
+			proceedButton.addEventListener("click",()=>{
+				window.location.href = "http://"+window.location.host + "/play?room="+roomInput.value;
+			});
+		}
+
+		socket.on("ready-join",(id)=>{
+			window.location.href = "http://"+window.location.host + "/play?room="+id;
 		});
-		buttonPrivate.addEventListener("click",()=>{
-			buttonPrivate.classList.add("clicked");
-		});
+
+		const buttonsDiv = document.getElementById("buttons-div");
+		buttonsDiv.innerHTML = "<button id='return'>← Volver</button><input type='text' placeholder='Room ID' id='roomInput'><button id='create'>Crear</button><button id='proceed'>Unirse</button>";
+
+		addButtonFuncsPrivate();
 	</script>
 </body>
 </html>
