@@ -10,6 +10,10 @@ app.get("/",(req,res)=>{
 	res.sendFile(path.join(__dirname,"public","home.html"));
 });
 
+app.get("/play",(req,res)=>{
+	res.sendFile(path.join(__dirname,"public","game.html"));
+});
+
 const server = app.listen(port,()=>console.log("Server started on port",port));
 
 const socketIO = require("socket.io");
@@ -58,15 +62,18 @@ function searchRoom(socket) {
 	}
 
 	joinRoom(socket,room2join);
+	socket.emit("joined-game",{
+		id:room2join
+	});
 }
 
 io.on("connection",function(socket){
 	console.log("New connection. ID:",socket.id);
 	sockets[socket.id] = socket;
 
-	searchRoom(socket);
-
 	socket.emit("console-log","Your id is '"+socket.id+"'");
+
+	socket.on("search-game",()=>searchRoom(socket));
 
 	socket.on("disconnect",()=>{
 		delete sockets[socket.id];

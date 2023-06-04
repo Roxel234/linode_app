@@ -1,0 +1,62 @@
+html, body {
+	height: 100%;
+	padding: 0;
+	margin: 5px;
+}
+
+body {
+	background-image: url("background.png");
+	background-repeat: no-repeat;
+	background-attachment: fixed;
+	background-size: cover;
+	color: #000000;
+	overflow: hidden;
+}
+
+#main {
+	background-color: rgba(255, 255, 255, 0.7);
+	width: 100%;
+	height: calc(100% - 20px);
+	text-align: center;
+	border-radius: 40px;
+	display: flex;
+}
+#info-side,#play-side {
+	float: left;
+	width: 50%;
+}
+#play-side {
+	display: flex;
+	flex-direction: column;
+	align-content: center;
+	height: 100%;
+	border-right: 2px solid black;
+	border-right-color: rgba(0, 0, 0, 0.3);
+}
+#info-side {
+	border-left: 2px solid black;
+	border-left-color: rgba(0, 0, 0, 0.3);
+}
+#play-side button {
+	width: 150px;
+	height: 40px;
+	margin-bottom: 5px;
+	align-self: center;
+	background-color: limegreen;
+	border-radius: 5px;
+	font-size: 15px;
+	font-family: monospace;
+	color: white;
+	border-color: white;
+	border-style: solid;
+	transition: background-color 0.3s;
+}
+
+#play-side button.clicked {
+	background-color: rgb(0, 180, 0);
+}
+
+#play-side p {
+	font-size: 30px;
+	font-family: monospace;
+}
