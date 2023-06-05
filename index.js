@@ -24,6 +24,28 @@ const rooms = {};
 
 const sockets = {};
 
+function generateCards(){
+	let types = ["-9","-8","-7","-6","-5","-4","-3","-2","0","2","3","4","5","6","7","8","9","d2","d2","ds","plus","minus"];
+	let cards = [];
+
+	for (var i = 0; i < types.length; i++) {
+		cards.push(types[i]);
+		cards.push(types[i]);
+		cards.push(types[i]);
+		cards.push(types[i]);
+	}
+
+	cards.push("1");
+	cards.push("1");
+
+	cards.push("-1");
+	cards.push("-1");
+
+	cards.sort(()=>Math.random()-0.5);
+
+	return cards;
+}
+
 function createRoom(private){
 	let genId = ()=> 1000 + Math.round(Math.random()*8999);
 	let id = genId();
@@ -37,7 +59,15 @@ function createRoom(private){
 		private,
 		playerCount:0,
 		admin:undefined,
-		started: false
+		started: false,
+		playerCards: {},
+		prepared: false,
+		mazo: generateCards(),
+		getCard(){
+			let card = this.mazo.slice(0,1)[0];
+			this.mazo.splice(0,1);
+			return card;
+		}
 	};
 
 	console.log("Created room",id,rooms["room-"+id]);
@@ -116,6 +146,9 @@ io.on("connection",function(socket){
 });
 
 function tickRoom(key){
+	let giveCards = (rooms[key].started && !rooms[key].prepared);
+	if (giveCards) {rooms[key].prepared = true;}
+
 	let players = rooms[key].players;
 
 	var socket;
@@ -137,13 +170,25 @@ function tickRoom(key){
 			}
 			continue;
 		}
-
 		let isAdmin = socket.id == rooms[key].admin ;
+
+		if (giveCards) {
+			let cards = [];
+			for (let i = 0; i < 5; i++) {
+				cards.push(rooms[key].getCard());
+			}
+			cards.push("x");
+			cards.push("=");
+			rooms[key].playerCards[socket.id] = cards;
+		}
+
+		let cards = rooms[key].playerCards[socket.id] || []; 
 
 		socket.emit("room-update",{
 			players:rooms[key].playerCount,
 			admin:isAdmin,
-			started: rooms[key].started
+			started: rooms[key].started,
+			cards
 		});
 	}
 }

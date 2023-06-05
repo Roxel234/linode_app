@@ -80,6 +80,7 @@
 
 		var players = 0;
 		var admin = false;
+		var cards = [];
 
 		beginButton.addEventListener("click",()=>{
 			if (admin) {
@@ -95,6 +96,7 @@
 			players = data.players;
 			admin = data.admin;
 			gameStarted = data.started;
+			cards = data.cards;
 		});
 
 		const imageCache = {};
@@ -121,7 +123,9 @@
 			} else {
 				beginButton.style.display = "none";
 			}
-			ctx.drawImage(loadImage("cards/card0.png"),500,200);
+			for (var i = 0; i < cards.length; i++) {
+				ctx.drawImage(loadImage("cards/card"+cards[i]+".png"),i*100+canvas.width/2-cards.length*50,canvas.height-150);
+			}
 		},50/3);
 	</script>
 </body>
