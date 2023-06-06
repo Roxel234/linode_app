@@ -87,3 +87,8 @@ body {
 	width: 20%;
 	text-align: center;
 }
+
+#info-side p {
+	font-family: monospace;
+	font-size: 20px;
+}

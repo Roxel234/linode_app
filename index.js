@@ -67,7 +67,8 @@ function createRoom(private){
 			let card = this.mazo.slice(0,1)[0];
 			this.mazo.splice(0,1);
 			return card;
-		}
+		},
+		turn:-1
 	};
 
 	console.log("Created room",id,rooms["room-"+id]);
@@ -78,15 +79,19 @@ function createRoom(private){
 function joinRoom(socket,room) {
 	if (rooms["room-"+room]) {
 		if (rooms["room-"+room].playerCount < 4) {
-			if (rooms["room-"+room].playerCount == 0) {
-				rooms["room-"+room].admin = socket.id;
-			}
-			rooms["room-"+room].players.push(socket.id);
-			rooms["room-"+room].playerCount++;
+			if (rooms["room-"+room].started) {
+				socket.emit("return-error","Room '"+room+"' game already started");
+			} else {
+				if (rooms["room-"+room].playerCount == 0) {
+					rooms["room-"+room].admin = socket.id;
+				}
+				rooms["room-"+room].players.push(socket.id);
+				rooms["room-"+room].playerCount++;
 
-			console.log("Socket",socket.id,"joined room",room);
-			socket.emit("console-log","You joined room "+room);
-			socket.gameRoom = room;
+				console.log("Socket",socket.id,"joined room",room);
+				socket.emit("console-log","You joined room "+room);
+				socket.gameRoom = room;
+				}
 		} else {
 			socket.emit("return-error","Room '"+room+"' is full");
 		}
@@ -101,7 +106,7 @@ function searchRoom(socket) {
 	let room2join = undefined;
 
 	for (var i = 0; i < roomKeys.length; i++) {
-		if (rooms[roomKeys[i]].players.length < 4 && !rooms[roomKeys[i]].private) {
+		if (rooms[roomKeys[i]].players.length < 4 && !rooms[roomKeys[i]].private && !rooms[roomKeys[i]].started) {
 			room2join = parseInt(roomKeys[i].substring(5),10);
 			break;
 		}
@@ -140,6 +145,17 @@ io.on("connection",function(socket){
 		}
 	});
 
+	socket.on("room-play",(data)=>{
+		if (data.type == "eat") {
+			rooms["room-"+socket.gameRoom].playerCards[socket.id].push(rooms["room-"+socket.gameRoom].getCard());
+			if (rooms["room-"+socket.gameRoom].turn >= rooms["room-"+socket.gameRoom].playerCount) {
+				rooms["room-"+socket.gameRoom].turn = 1;
+			} else {
+				rooms["room-"+socket.gameRoom].turn++;
+			}
+		}
+	});
+
 	socket.on("disconnect",()=>{
 		delete sockets[socket.id];
 	});
@@ -149,10 +165,14 @@ function tickRoom(key){
 	let giveCards = (rooms[key].started && !rooms[key].prepared);
 	if (giveCards) {rooms[key].prepared = true;}
 
+	if (rooms[key].turn == -1) {
+		rooms[key].turn = 1;
+	}
+
+	//Player's update
+
 	let players = rooms[key].players;
-
 	var socket;
-
 	for (var i = 0; i < players.length; i++) {
 		socket = sockets[players[i]];
 
@@ -182,13 +202,16 @@ function tickRoom(key){
 			rooms[key].playerCards[socket.id] = cards;
 		}
 
+		let turn = rooms[key].players[rooms[key].turn-1] == socket.id;
+
 		let cards = rooms[key].playerCards[socket.id] || []; 
 
 		socket.emit("room-update",{
 			players:rooms[key].playerCount,
 			admin:isAdmin,
 			started: rooms[key].started,
-			cards
+			cards,
+			turn
 		});
 	}
 }

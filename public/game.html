@@ -61,6 +61,7 @@
 		const gameId = (new URLSearchParams((new URL(window.location.href)).search)).get("room");
 		const beginButton = document.getElementById("comenzar-juego");
 		var gameStarted = false;
+		var myTurn = false;
 
 		socket.on("console-log",(data)=>console.log(data));
 
@@ -88,6 +89,21 @@
 			}
 		});
 
+		var mouse = {
+			x:0,
+			y:0,
+			click:false
+		};
+
+		document.addEventListener("mousemove",(e)=>{
+			mouse.x = e.clientX;
+			mouse.y = e.clientY;
+		});
+
+		document.addEventListener("click",()=>{
+			mouse.click = true;
+		});
+
 		socket.on("joined-game",(data)=>{
 			roomId = data.id;
 		});
@@ -97,6 +113,7 @@
 			admin = data.admin;
 			gameStarted = data.started;
 			cards = data.cards;
+			myTurn = data.turn;
 		});
 
 		const imageCache = {};
@@ -111,6 +128,8 @@
 			}
 		}
 
+		var jugada = [];
+
 		setInterval(()=>{
 			canvas.width = window.innerWidth;
 			canvas.height = window.innerHeight;
@@ -123,9 +142,34 @@
 			} else {
 				beginButton.style.display = "none";
 			}
+
+			let cardsToDraw = [];
+
 			for (var i = 0; i < cards.length; i++) {
-				ctx.drawImage(loadImage("cards/card"+cards[i]+".png"),i*100+canvas.width/2-cards.length*50,canvas.height-150);
+				if (jugada.indexOf(i) == -1) {
+					cardsToDraw.push([cards[i],i]);
+				}
 			}
+
+			for (var i = 0; i < cardsToDraw.length; i++) {
+				let x = i*100+canvas.width/2-cardsToDraw.length*50;
+				let distToMouse = mouse.x - x - 77;
+				let offset = -Math.abs(distToMouse)/4+75.5;
+
+				let selected = distToMouse < 24 && distToMouse > -77;
+
+				if (offset < 0 || !myTurn) {
+					offset = 0;
+				}
+
+				if (mouse.click && selected) {
+					jugada.push(cardsToDraw[i][1]);
+				} else {
+					ctx.drawImage(loadImage("cards/card"+cardsToDraw[i][0]+".png"),x,canvas.height-150-offset);
+				}
+			}
+
+			mouse.click = false;
 		},50/3);
 	</script>
 </body>
