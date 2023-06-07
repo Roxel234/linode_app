@@ -156,7 +156,7 @@
 				let distToMouse = mouse.x - x - 77;
 				let offset = -Math.abs(distToMouse)/4+75.5;
 
-				let selected = distToMouse < 24 && distToMouse > -77;
+				let selected = distToMouse < 24 && distToMouse > -77 && mouse.y > canvas.height-150-75.5;
 
 				if (offset < 0 || !myTurn) {
 					offset = 0;
@@ -166,6 +166,19 @@
 					jugada.push(cardsToDraw[i][1]);
 				} else {
 					ctx.drawImage(loadImage("cards/card"+cardsToDraw[i][0]+".png"),x,canvas.height-150-offset);
+				}
+			}
+
+			for (var i = 0; i < jugada.length; i++) {
+				let x = i*77+canvas.width/2-jugada.length*77/2;
+				let distToMouse = mouse.x - x - 77;
+
+				let selected = distToMouse < 24 && distToMouse > -77 && mouse.y < canvas.height-230 && mouse.y > canvas.height-350;
+
+				if (mouse.click && selected) {
+					jugada.splice(i,1);
+				} else {
+					ctx.drawImage(loadImage("cards/card"+cards[jugada[i]]+".png"),x,canvas.height-350,77,120);
 				}
 			}
 
